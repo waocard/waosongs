@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+
+  /* You can optionally define a dark theme variant if needed */
+  /* .dark { */
+    /* --background: ...; */
+    /* ... other dark theme variables */
+  /* } */
+}
+
+/* Apply base styles to elements.
+  This part remains unchanged.
+*/
+@layer base {
+  * {
+    /* Consider adding border-box sizing if not already handled by Tailwind's preflight */
+    /* box-sizing: border-box; */
+    /* border-width: 0; */
+    /* border-style: solid; */
+    /* border-color: theme('borderColor.DEFAULT', currentColor); */
+  }
+  body {
+    /* Apply background and foreground using the CSS variables */
+    /* background-color: hsl(var(--background)); */
+    /* color: hsl(var(--foreground)); */
+    /* Note: Tailwind's preflight often handles basic body styling. */
+    /* You might integrate your HSL vars with Tailwind's theme config instead. */
+    
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom component styles using @apply.
+  You can optionally wrap these in `@layer components { ... }` for better organization
+  and control over specificity, but placing them after the @tailwind directives also works.
+*/
+.active-tab {
+  @apply pb-3 px-4 font-medium text-pink-400 border-b-2 border-pink-400;
+}
+
+.inactive-tab {
+  @apply pb-3 px-4 font-medium text-gray-400 hover:text-white;
+}
+
+.gradient-bg {
+  @apply bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800;
+}
+
+.card-bg {
+  /* Updated: Combined bg-gray-800 and opacity 50 using Tailwind v3+ syntax */
+  @apply bg-gray-800/50 backdrop-blur-sm; 
+}
+
+.btn-primary {
+  @apply px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg font-medium transition text-white hover:opacity-90;
+}
+
+.btn-secondary {
+  @apply px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition text-white;
+}
+
+/* Pure CSS rules (not using @apply) remain unchanged.
+  Place these after the @tailwind directives and any @apply rules.
+*/
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  /* Consider using your CSS variables or Tailwind colors if desired */
+  /* background: hsl(var(--muted) / 0.5); */
+  background: rgba(31, 41, 55, 0.5); /* Equivalent to gray-800 at 50% opacity */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  /* Consider using your CSS variables or Tailwind colors if desired */
+  /* background: hsl(var(--primary) / 0.5); */
+  background: rgba(236, 72, 153, 0.5); /* Equivalent to pink-500 at 50% opacity */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+   /* background: hsl(var(--primary) / 0.7); */
+  background: rgba(236, 72, 153, 0.7); /* Equivalent to pink-500 at 70% opacity */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
 }
