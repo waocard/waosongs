@@ -16,7 +16,7 @@ export default function Hero() {
   return (
     <header className="container mx-auto px-6 py-24 flex flex-col lg:flex-row items-center">
       <div className="lg:w-1/2 mb-12 lg:mb-0 animate-slide-up">
-        <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+        <h1 className="text-5xl text-white md:text-6xl font-bold leading-tight mb-6">
           Your Story Deserves <span className="text-pink-400">Custom Music</span>
         </h1>
         <p className="text-xl mb-8 text-gray-300">

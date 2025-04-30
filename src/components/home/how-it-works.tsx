@@ -5,7 +5,7 @@ export default function HowItWorks() {
   return (
     <section className="bg-gray-900/50 py-20">
       <div className="container mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-16 text-center">
+        <h2 className="text-3xl text-white font-bold mb-16 text-center">
           How <span className="text-pink-400">WaoSongs</span> Works
         </h2>
         

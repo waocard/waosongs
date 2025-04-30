@@ -25,7 +25,7 @@ export default function Testimonials() {
   
   return (
     <section className="container mx-auto px-6 py-20">
-      <h2 className="text-3xl font-bold mb-12 text-center">
+      <h2 className="text-3xl text-white font-bold mb-12 text-center">
         What Our <span className="text-pink-400">Clients</span> Say
       </h2>
       
