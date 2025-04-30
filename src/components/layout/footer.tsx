@@ -9,8 +9,10 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between mb-8">
           <div className="mb-8 md:mb-0">
             <div className="flex items-center space-x-2 mb-4">
-              <Music className="w-6 h-6 text-pink-400" />
-              <span className="text-xl font-bold">WaoSongs</span>
+            <Music className="w-8 h-8 text-pink-400" />
+        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-blue-400">
+          WaoSongs
+        </span>
             </div>
             <p className="text-gray-400 max-w-xs">
               Bringing emotions to life through personalized musical creations since 2025.
@@ -19,7 +21,7 @@ export default function Footer() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="font-medium mb-4">Services</h3>
+              <h3 className="font-medium text-white mb-4">Services</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/categories/love" className="hover:text-pink-400 transition">Love Songs</Link></li>
                 <li><Link href="/categories/birthday" className="hover:text-pink-400 transition">Birthday Songs</Link></li>
@@ -29,17 +31,17 @@ export default function Footer() {
             </div>
             
             <div>
-              <h3 className="font-medium mb-4">Company</h3>
+              <h3 className="font-medium text-white mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/about" className="hover:text-pink-400 transition">About Us</Link></li>
-                <li><Link href="/artists" className="hover:text-pink-400 transition">Our Artists</Link></li>
-                <li><Link href="/testimonials" className="hover:text-pink-400 transition">Testimonials</Link></li>
+                <li><Link href="#" className="hover:text-pink-400 transition">Our Artists</Link></li>
+                <li><Link href="#testimonials" className="hover:text-pink-400 transition">Testimonials</Link></li>
                 <li><Link href="/contact" className="hover:text-pink-400 transition">Contact</Link></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-medium mb-4">Legal</h3>
+              <h3 className="font-medium text-white mb-4">Legal</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/privacy" className="hover:text-pink-400 transition">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-pink-400 transition">Terms of Service</Link></li>

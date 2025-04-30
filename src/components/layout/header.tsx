@@ -10,12 +10,12 @@ export default function Header() {
 
   return (
     <nav className="container mx-auto flex items-center justify-between p-6">
-      <div className="flex items-center space-x-2">
+      <Link href="/" className="flex items-center space-x-2">
         <Music className="w-8 h-8 text-pink-400" />
         <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-blue-400">
           WaoSongs
         </span>
-      </div>
+      </Link>
       
       {/* Mobile menu button */}
       <button 

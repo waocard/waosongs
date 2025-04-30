@@ -14,7 +14,7 @@ export default function HowItWorks() {
             <div className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center absolute -top-6 left-8">
               <span className="font-bold text-lg">1</span>
             </div>
-            <h3 className="text-xl font-medium mb-4 mt-4">Share Your Story</h3>
+            <h3 className="text-xl text-pink-400 font-medium mb-4 mt-4">Share Your Story</h3>
             <p className="text-gray-300">
               Tell us about your occasion, feelings, and the message you want to convey through music.
             </p>
@@ -24,7 +24,7 @@ export default function HowItWorks() {
             <div className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center absolute -top-6 left-8">
               <span className="font-bold text-lg">2</span>
             </div>
-            <h3 className="text-xl font-medium mb-4 mt-4">Professional Creation</h3>
+            <h3 className="text-xl text-pink-400 font-medium mb-4 mt-4">Professional Creation</h3>
             <p className="text-gray-300">
               Our musicians and producers craft a custom piece tailored specifically to your needs.
             </p>
@@ -34,7 +34,7 @@ export default function HowItWorks() {
             <div className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center absolute -top-6 left-8">
               <span className="font-bold text-lg">3</span>
             </div>
-            <h3 className="text-xl font-medium mb-4 mt-4">Receive & Share</h3>
+            <h3 className="text-xl text-pink-400 font-medium mb-4 mt-4">Receive & Share</h3>
             <p className="text-gray-300">
               Get your finished song in high-quality digital format, ready to play for your special moment.
             </p>

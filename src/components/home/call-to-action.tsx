@@ -5,7 +5,7 @@ export default function CallToAction() {
   return (
     <section className="container mx-auto px-6 py-16">
       <div className="bg-gradient-to-r from-pink-600/30 to-purple-600/30 rounded-2xl p-12 text-center backdrop-blur-sm">
-        <h2 className="text-3xl font-bold mb-6">Ready to Create Your Unique Song?</h2>
+        <h2 className="text-3xl text-pink-400 font-bold mb-6">Ready to Create Your Unique Song within 30 minutes?</h2>
         <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
           Start your musical journey today and give the gift of personalized music that will be cherished for years to come.
         </p>

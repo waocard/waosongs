@@ -18,7 +18,7 @@ export default function Categories() {
   
   return (
     <section className="container mx-auto px-6 py-20">
-      <h2 className="text-3xl font-bold mb-12 text-center">
+      <h2 className="text-3xl text-white font-bold mb-12 text-center">
         Discover Our <span className="text-pink-400">Categories</span>
       </h2>
       
@@ -36,7 +36,7 @@ export default function Categories() {
             <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center mb-4">
               {category.icon}
             </div>
-            <h3 className="text-xl font-medium mb-2">{category.name}</h3>
+            <h3 className="text-xl text-white font-medium mb-2">{category.name}</h3>
             <p className="text-gray-400 text-sm mb-4">{category.description}</p>
             <Link 
               href={`/categories/${category.id}`}
