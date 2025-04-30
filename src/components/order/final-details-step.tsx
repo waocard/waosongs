@@ -58,7 +58,7 @@ export default function FinalDetailsStep({ orderData, setOrderData }: FinalDetai
             <p className="font-medium mb-1">Important Notes</p>
             <ul className="text-sm text-gray-300 list-disc pl-4 space-y-1">
               <li>Our artists will begin working after payment is confirmed</li>
-              <li>You'll receive a preview to approve before final delivery</li>
+              <li>You&apos;ll receive a preview to approve before final delivery</li>
               <li>Revisions may extend the delivery timeline</li>
               <li>Copyright of the music is transferred to you upon completion</li>
             </ul>

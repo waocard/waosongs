@@ -62,7 +62,7 @@ export default function OrderPage() {
 
         <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm mb-6">
           <h2 className="text-2xl font-bold text-center mb-2">Create Your Custom Song</h2>
-          <p className="text-gray-300 text-center mb-6">Tell us what you're looking for and our artists will bring it to life</p>
+          <p className="text-gray-300 text-center mb-6">Tell us what you&apos;re looking for and our artists will bring it to life</p>
           
           <OrderSteps currentStep={step} totalSteps={4} />
           

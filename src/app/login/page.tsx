@@ -1,37 +1,22 @@
 // src/app/auth/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Music } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get('from') || '/dashboard';
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    
-    try {
-      await login(email, password);
-      router.push(from);
-    } catch (error) {
-      setError('Invalid email or password. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
@@ -44,13 +29,27 @@ export default function LoginPage() {
           </p>
         </div>
         
-        {error && (
+        {loginError && (
           <div className="bg-red-500 bg-opacity-20 text-red-100 p-3 rounded-lg mb-6">
-            {error}
+            {loginError}
           </div>
         )}
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          setLoginError('');
+          setIsLoading(true);
+          
+          login(email, password)
+            .then(() => router.push(from))
+            .catch((error) => {
+              console.error('Login error:', error);
+              setLoginError('Invalid email or password. Please try again.');
+            })
+            .finally(() => {
+              setIsLoading(false);
+            });
+        }}>
           <div className="mb-6">
             <label htmlFor="email" className="block text-white mb-2 font-medium">
               Email
@@ -101,7 +100,7 @@ export default function LoginPage() {
         
         <div className="mt-8 text-center">
           <p className="text-gray-300">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/auth/signup" className="text-pink-400 hover:text-pink-300">
               Sign Up
             </Link>
@@ -111,3 +110,16 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  );
+}
+

@@ -2,13 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
 import SongHeader from '@/components/dashboard/song-header';
 import SongDetails from '@/components/dashboard/song-details';
 import MessagingTab from '@/components/dashboard/messaging-tab';
 import FilesTab from '@/components/dashboard/files-tab';
 import LyricsModal from '@/components/dashboard/lyrics-modal';
-import { getSongById } from '@/lib/api';
+// import { getSongById } from '@/lib/api';
 import { Song } from '@/lib/types';
 
 // Mock data for initial development
@@ -36,8 +35,8 @@ const mockSong: Song = {
 };
 
 export default function SongDetailPage() {
-  const { id } = useParams();
-  const [song, setSong] = useState<Song>(mockSong);
+  // const params = useParams();
+  const [song] = useState<Song>(mockSong);
   const [activeTab, setActiveTab] = useState('overview');
   const [showLyricsModal, setShowLyricsModal] = useState(false);
   

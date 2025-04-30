@@ -60,7 +60,7 @@ export default function Hero() {
                 <Play className="w-6 h-6 ml-1" />
               </div>
               <div>
-                <p className="font-medium">Sample: "Forever Yours"</p>
+                <p className="font-medium">Sample: &quot;Forever Yours&quot;</p>
                 <p className="text-sm text-gray-300">Love Song • 3:24</p>
               </div>
             </div>

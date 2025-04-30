@@ -9,7 +9,6 @@ import {
   User, 
   Clock, 
   MessageSquare, 
-  Download, 
   Play, 
   Pause, 
   Search,
@@ -263,7 +262,7 @@ export default function DashboardPage() {
                 <div className="text-center py-12">
                   <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-medium mb-2">No songs found</h3>
-                  <p className="text-gray-400 mb-6">You don't have any {activeTab === 'ongoing' ? 'ongoing' : activeTab === 'completed' ? 'completed' : ''} songs yet.</p>
+                  <p className="text-gray-400 mb-6">You don&apos;t have any {activeTab === 'ongoing' ? 'ongoing' : activeTab === 'completed' ? 'completed' : ''} songs yet.</p>
                   <Link 
                     href="/order" 
                     className="px-5 py-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg font-medium transition inline-block"

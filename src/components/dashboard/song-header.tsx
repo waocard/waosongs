@@ -11,7 +11,7 @@ interface SongHeaderProps {
 
 export default function SongHeader({ song }: SongHeaderProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTime] = useState(0);
   
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
