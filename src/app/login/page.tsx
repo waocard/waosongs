@@ -1,4 +1,4 @@
-// src/app/auth/login/page.tsx
+// src/app/login/page.tsx
 'use client';
 
 import { useState, Suspense } from 'react';
@@ -79,7 +79,7 @@ function LoginContent() {
               required
             />
             <div className="flex justify-end mt-2">
-              <Link href="/auth/forgot-password" className="text-pink-400 text-sm hover:text-pink-300">
+              <Link href="/forgot-password" className="text-pink-400 text-sm hover:text-pink-300">
                 Forgot password?
               </Link>
             </div>
@@ -101,7 +101,7 @@ function LoginContent() {
         <div className="mt-8 text-center">
           <p className="text-gray-300">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-pink-400 hover:text-pink-300">
+            <Link href="/signup" className="text-pink-400 hover:text-pink-300">
               Sign Up
             </Link>
           </p>

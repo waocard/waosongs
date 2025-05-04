@@ -27,8 +27,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = localStorage.getItem('token');
         
         if (token) {
-          // In a real app, validate the token with your API
-          const response = await fetch('/api/auth/validate', {
+          // Validate the token with your API
+          const response = await fetch('http://localhost:3001/api/auth/validate', {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -37,9 +37,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
+            
+            // Set cookies for server-side middleware
+            document.cookie = `token=${token}; path=/; secure`;
+            document.cookie = `userRole=${userData.role}; path=/; secure`;
+            
+            // Redirect based on user role if they're on the login page
+            if (window.location.pathname === '/login') {
+              setTimeout(() => {
+                if (userData.role === 'admin') {
+                  window.location.href = '/admin';
+                } else {
+                  window.location.href = '/dashboard';
+                }
+              }, 100);
+            }
           } else {
             // Token is invalid, remove it
             localStorage.removeItem('token');
+            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           }
         }
       } catch (error) {
@@ -50,14 +67,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     checkUserLoggedIn();
-  }, []);
+  }, [router]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // In a real app, make an API call to your backend
-      const response = await fetch('/api/auth/login', {
+      // Use the backend API endpoint
+      const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -70,9 +87,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const data = await response.json();
+      console.log('Login response:', data);
       localStorage.setItem('token', data.token);
+      
+      // Set cookies for server-side middleware
+      document.cookie = `token=${data.token}; path=/; secure`;
+      document.cookie = `userRole=${data.user.role}; path=/; secure`;
+      
       setUser(data.user);
-      router.push('/dashboard');
+      
+      // Redirect based on user role
+      console.log('User role:', data.user.role);
+      console.log('Is admin?', data.user.role === 'admin');
+      
+      // Small delay to ensure state is updated before redirect
+      setTimeout(() => {
+        if (data.user.role === 'admin') {
+          console.log('Redirecting to admin dashboard');
+          window.location.href = '/admin';
+        } else {
+          console.log('Redirecting to user dashboard');
+          window.location.href = '/dashboard';
+        }
+      }, 100);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -111,7 +148,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    // Clear localStorage
     localStorage.removeItem('token');
+    
+    // Clear cookies
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
     setUser(null);
     router.push('/');
   };

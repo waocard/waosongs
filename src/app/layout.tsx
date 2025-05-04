@@ -1,6 +1,15 @@
 // app/layout.tsx
 import { AuthProvider } from '@/context/auth-context';
 import './globals.css';
+
+export const metadata = {
+  title: 'WaoSongs',
+  description: 'Custom music production platform',
+  icons: {
+    icon: '/favicon.ico',
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -8,6 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Favicon is handled by metadata */}
+      </head>
       <body className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen">
         <AuthProvider>
           {children}
