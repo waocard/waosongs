@@ -14,64 +14,102 @@ export default function Hero() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Cloudinary audio URL
-  const cloudinaryUrl = "https://res.cloudinary.com/demo/video/upload/v1/WaoSongs_com_Jingle_Nigerian_Pidgin_Version___1_rfosjf";
+  // Using a reliable test audio source that's guaranteed to work
+  const audioUrl = "https://res.cloudinary.com/dnwzun74d/video/upload/v1746021203/WaoSongs_com_Jingle_Nigerian_Pidgin_Version___1_rfosjf.mp3";
   
   useEffect(() => {
-    // Initialize audio element
-    const audio = new Audio(cloudinaryUrl);
+    // Create a single audio element that persists throughout component lifecycle
+    const audio = new Audio(audioUrl);
     audioRef.current = audio;
     
     // Set up event listeners
-    audio.addEventListener('loadedmetadata', () => {
+    const handleLoadedMetadata = () => {
       setDuration(audio.duration);
-    });
+    };
     
-    audio.addEventListener('ended', () => {
+    const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
       setCurrentTime(0);
-    });
-    
-    // Clean up
-    return () => {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
       
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-    };
-  }, []);
-  
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
       }
-    } else {
-      audioRef.current.play().catch(error => {
-        console.error("Audio playback failed:", error);
-      });
-      
-      // Update progress
-      progressIntervalRef.current = setInterval(() => {
-        if (audioRef.current) {
-          const currentTime = audioRef.current.currentTime;
-          const duration = audioRef.current.duration;
-          setProgress((currentTime / duration) * 100);
-          setCurrentTime(currentTime);
-        }
-      }, 100);
-    }
+    };
     
-    setIsPlaying(!isPlaying);
+    const handleError = () => {
+      console.error('Audio failed to load or play');
+      setIsPlaying(false);
+      
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+    };
+    
+    // Add event listeners
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    
+    // Clean up function
+    return () => {
+      // Remove event listeners
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      
+      // Stop any ongoing processes
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      
+      // Ensure audio is stopped
+      audio.pause();
+      audio.src = '';
+    };
+  }, []);
+  
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    if (isPlaying) {
+      // Pause the audio
+      audio.pause();
+      
+      // Stop progress tracking
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      
+      setIsPlaying(false);
+    } else {
+      // Play the audio and handle potential failure
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+            // Start progress tracking
+            progressIntervalRef.current = setInterval(() => {
+              setCurrentTime(audio.currentTime);
+              setProgress((audio.currentTime / audio.duration) * 100);
+            }, 100);
+            
+            setIsPlaying(true);
+          })
+          .catch(error => {
+            // Auto-play was prevented or other error
+            console.error("Audio playback failed:", error);
+            setIsPlaying(false);
+          });
+      }
+    }
   };
   
   const toggleMute = () => {
@@ -153,7 +191,7 @@ export default function Hero() {
                   )}
                 </button>
                 <div>
-                  <p className="font-medium text-white">WaoSongs Nigerian Jingle</p>
+                  <p className="font-medium text-white">WaoSongs Nigeria Pigin Jingle</p>
                   <p className="text-sm text-gray-300">
                     Business Jingle • {formatTime(currentTime)} / {formatTime(duration || 0)}
                   </p>

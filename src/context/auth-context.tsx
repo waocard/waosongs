@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       // Use the backend API endpoint
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('https://wao-songs-api.vercel.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
