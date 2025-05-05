@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   // If the path is an admin path and the user is not an admin or not logged in, redirect to login
   if (isAdminPath && (!token || userRole !== 'admin')) {
     const url = new URL('/login', request.url);
-    url.searchParams.set('from', path);
+    url.searchParams.set('returnTo', path);
     return NextResponse.redirect(url);
   }
   

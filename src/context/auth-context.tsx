@@ -5,12 +5,18 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
 
+interface AuthResponse {
+  token: string;
+  user: User;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<AuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,19 +25,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.waosongs.com';
 
   useEffect(() => {
-    // Check if the user is already logged in
-    const checkUserLoggedIn = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (token) {
-          // Validate the token with your API
-          const response = await fetch('http://localhost:3001/api/auth/validate', {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      // For client-side components, use window to check if we're in the browser
+      if (typeof window === 'undefined') {
+        setIsLoading(false);
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          const response = await fetch(`${apiUrl}/api/auth/validate`, {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
           
           if (response.ok) {
@@ -41,45 +53,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Set cookies for server-side middleware
             document.cookie = `token=${token}; path=/; secure`;
             document.cookie = `userRole=${userData.role}; path=/; secure`;
-            
-            // Redirect based on user role if they're on the login page
-            if (window.location.pathname === '/login') {
-              setTimeout(() => {
-                if (userData.role === 'admin') {
-                  window.location.href = '/admin';
-                } else {
-                  window.location.href = '/dashboard';
-                }
-              }, 100);
-            }
           } else {
-            // Token is invalid, remove it
+            // Clear invalid token
             localStorage.removeItem('token');
             document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            setUser(null);
           }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          
+          // Clear token on error
+          localStorage.removeItem('token');
+          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setUser(null);
       }
+      
+      setIsLoading(false);
     };
     
-    checkUserLoggedIn();
-  }, [router]);
-
+    checkAuth();
+  }, [apiUrl]);
+  
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // Use the backend API endpoint
-      const response = await fetch('https://wao-songs-api.vercel.app/api/auth/login', {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
       
       if (!response.ok) {
@@ -87,7 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const data = await response.json();
-      console.log('Login response:', data);
       localStorage.setItem('token', data.token);
       
       // Set cookies for server-side middleware
@@ -95,21 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       document.cookie = `userRole=${data.user.role}; path=/; secure`;
       
       setUser(data.user);
-      
-      // Redirect based on user role
-      console.log('User role:', data.user.role);
-      console.log('Is admin?', data.user.role === 'admin');
-      
-      // Small delay to ensure state is updated before redirect
-      setTimeout(() => {
-        if (data.user.role === 'admin') {
-          console.log('Redirecting to admin dashboard');
-          window.location.href = '/admin';
-        } else {
-          console.log('Redirecting to user dashboard');
-          window.location.href = '/dashboard';
-        }
-      }, 100);
+      return data;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -117,18 +112,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   };
-
+  
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // In a real app, make an API call to your backend
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(`${apiUrl}/api/auth/signup`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password }),
       });
       
       if (!response.ok) {
@@ -137,8 +131,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const data = await response.json();
       localStorage.setItem('token', data.token);
+      
+      // Set cookies for server-side middleware
+      document.cookie = `token=${data.token}; path=/; secure`;
+      document.cookie = `userRole=${data.user.role}; path=/; secure`;
+      
       setUser(data.user);
-      router.push('/dashboard');
+      return data;
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -146,9 +145,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   };
-
+  
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem('token');
     
     // Clear cookies
@@ -161,7 +159,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Make sure to return the JSX
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, signup }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      isAuthenticated: !!user,
+      login, 
+      logout, 
+      signup 
+    }}>
       {children}
     </AuthContext.Provider>
   );

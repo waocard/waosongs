@@ -16,11 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Favicon is handled by metadata */}
       </head>
-      <body className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen">
+      <body className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen" suppressHydrationWarning>
         <AuthProvider>
           {children}
         </AuthProvider>

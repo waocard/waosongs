@@ -7,6 +7,8 @@ import Testimonials from '@/components/home/testimonials';
 import CallToAction from '@/components/home/call-to-action';
 import Footer from '@/components/layout/footer';
 
+export const dynamic = 'force-dynamic';
+
 export default function HomePage() {
   return (
     <main>

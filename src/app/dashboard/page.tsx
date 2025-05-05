@@ -275,7 +275,10 @@ const UserDashboard = () => {
                   <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-medium mb-2">No songs found</h3>
                   <p className="text-gray-400 mb-6">You don&apos;t have any {activeTab === 'ongoing' ? 'ongoing' : activeTab === 'completed' ? 'completed' : ''} songs yet.</p>
-                  <button className="px-5 py-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg font-medium transition">
+                  <button 
+                    onClick={() => router.push('/order')}
+                    className="px-5 py-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg font-medium transition"
+                  >
                     Create New Song
                   </button>
                 </div>
@@ -344,8 +347,11 @@ const UserDashboard = () => {
                   <p className="text-sm text-gray-300 mb-3">
                     Celebrate your special day with a custom song and a beautiful video montage.
                   </p>
-                  <button className="w-full py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg font-medium transition text-sm">
-                    Learn More
+                  <button 
+                    onClick={() => router.push('/order?category=Anniversary+Song&occasion=Anniversary')}
+                    className="w-full py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg font-medium transition text-sm"
+                  >
+                    Order Now
                   </button>
                 </div>
                 
@@ -362,8 +368,11 @@ const UserDashboard = () => {
                   <p className="text-sm text-gray-300 mb-3">
                     Get 3 variations of your business jingle with full commercial license.
                   </p>
-                  <button className="w-full py-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg font-medium transition text-sm">
-                    Learn More
+                  <button 
+                    onClick={() => router.push('/order?category=Business+Jingle&occasion=Promotional')}
+                    className="w-full py-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg font-medium transition text-sm"
+                  >
+                    Order Now
                   </button>
                 </div>
               </div>
