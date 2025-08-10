@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
   Music,
   User,
@@ -27,12 +28,9 @@ import {
 // };
 
 // Define the props type directly in the component signature
-const SongDetailPage = ({
-  params
-}: {
-  params: { id: string };
-}) => {
-  const songId = params.id; // Using params to get the song ID
+const SongDetailPage = () => {
+  const params = useParams();
+  const songId = params.id as string; // Using params to get the song ID
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime] = useState(0); // Consider if this should be updated based on audio playback
   const [activeTab, setActiveTab] = useState('overview');

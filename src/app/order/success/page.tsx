@@ -1,14 +1,14 @@
 // app/order/success/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Music, ArrowRight, Loader } from 'lucide-react';
 import { orderService } from '@/services/order-service';
 import { Order } from '@/lib/types';
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -127,5 +127,18 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white flex flex-col items-center justify-center">
+        <Loader className="w-12 h-12 text-pink-400 animate-spin mb-4" />
+        <p className="text-xl">Loading...</p>
+      </div>
+    }>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }

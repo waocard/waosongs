@@ -180,7 +180,7 @@ export default function OrderHistory() {
                     </div>
                     <div className="flex items-center">
                       <DollarSign className="w-4 h-4 mr-1" />
-                      <span>${order.totalPrice.toFixed(2)} - {getPaymentLabel(order.paymentStatus)}</span>
+                      <span>${order.totalPrice.toFixed(2)} - {getPaymentLabel(order.paymentStatus || 'unpaid')}</span>
                     </div>
                   </div>
                 </div>

@@ -2,27 +2,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Music, ArrowLeft, ShoppingCart, Loader } from 'lucide-react';
 import PaymentComponent from '@/components/order/payment-component';
 import { orderService } from '@/services/order-service';
 import { Order } from '@/lib/types';
 
-type OrderPaymentPageProps = {
-  params: {
-    id: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default function OrderPaymentPage({ params }: OrderPaymentPageProps) {
+export default function OrderPaymentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const orderId = params.id;
+  const params = useParams();
+  const orderId = params.id as string;
   
   useEffect(() => {
     // Fetch order details

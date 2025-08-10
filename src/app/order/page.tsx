@@ -1,7 +1,7 @@
 // app/order/page.tsx
 'use client';
 
-import { useState, useEffect, JSX } from 'react';
+import { useState, useEffect, JSX, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Music, ChevronLeft, ChevronRight, AlertTriangle, User, LogIn } from 'lucide-react';
@@ -15,7 +15,7 @@ import { useOrder } from '@/hooks/use-order';
 import { orderService } from '@/services/order-service';
 import AuthRequiredModal from '@/components/order/auth-required-modal';
 
-export default function OrderPage(): JSX.Element {
+function OrderPageContent(): JSX.Element {
   // Initialize with default values for all required properties
   const [orderData, setOrderData] = useState<OrderFormData>({
     category: '',
@@ -246,5 +246,18 @@ export default function OrderPage(): JSX.Element {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderPage(): JSX.Element {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white flex flex-col items-center justify-center">
+        <Music className="w-12 h-12 text-pink-400 animate-pulse mb-4" />
+        <p className="text-xl">Loading order form...</p>
+      </div>
+    }>
+      <OrderPageContent />
+    </Suspense>
   );
 }
