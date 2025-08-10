@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle, AlertTriangle, Loader } from 'lucide-react';
-import { PaystackButton } from 'react-paystack';
+import { PaystackPop } from '@paystack/inline-js';
 import axios from 'axios';
 
 interface PaystackPaymentProps {
@@ -73,19 +73,7 @@ const PaystackPayment = ({ orderId, amount, email, onSuccess, onError }: Paystac
     }
   };
 
-  // Config for Paystack button
-  const paystackConfig = {
-    publicKey: paystackPublicKey,
-    email: email,
-    amount: Math.round(amount * 100), // Convert to kobo/cents
-    reference: reference,
-    onSuccess: (reference: { reference: string }) => {
-      handlePaystackSuccess(reference.reference);
-    },
-    onClose: () => {
-      setError('Payment was cancelled');
-    }
-  };
+
 
   return (
     <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
@@ -139,11 +127,26 @@ const PaystackPayment = ({ orderId, amount, email, onSuccess, onError }: Paystac
           
           {paymentInitialized ? (
             <div className="flex justify-center">
-              <PaystackButton
-                {...paystackConfig}
+              <button
+                onClick={() => {
+                  const paystack = new PaystackPop();
+                  paystack.newTransaction({
+                    key: paystackPublicKey,
+                    email,
+                    amount: Math.round(amount * 100),
+                    ref: reference,
+                    onSuccess: ({ reference }) => {
+                      handlePaystackSuccess(reference);
+                    },
+                    onClose: () => {
+                      setError('Payment was cancelled');
+                    }
+                  });
+                }}
                 className="w-full py-3 rounded-lg font-medium text-white transition bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90"
-                text="Pay with Paystack"
-              />
+              >
+                Pay with Paystack
+              </button>
             </div>
           ) : (
             <button
