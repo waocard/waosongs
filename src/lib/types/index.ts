@@ -143,3 +143,20 @@ export interface AdminOrdersResponse {
     limit: number;
   };
 }
+
+export interface AdminUsersResponse {
+  users: Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    createdAt: string;
+    ordersCount: number;
+  }>;
+  pagination: {
+    total: number;
+    pages: number;
+    page: number;
+    limit: number;
+  };
+}

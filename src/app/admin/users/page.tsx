@@ -1,7 +1,7 @@
 // src/app/admin/users/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Search, 
@@ -17,7 +17,8 @@ import {
   Mail,
   Lock
 } from 'lucide-react';
-import { User as UserType } from '@/lib/types';
+import { User as UserType, AdminUsersResponse } from '@/lib/types';
+import { getAdminUsers } from '@/lib/api';
 
 // Mock user data
 const mockUsers: UserType[] = [
@@ -78,11 +79,38 @@ export default function AdminUsersPage() {
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usersData, setUsersData] = useState<AdminUsersResponse | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const router = useRouter();
   
+  const fetchUsers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAdminUsers(currentPage, 10);
+      setUsersData(data);
+      setTotalPages(data.pagination.pages);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch users');
+      console.error('Error fetching users:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage]);
+  
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+  
+  // Use API data if available, otherwise use mock data
+  const users = usersData?.users || mockUsers;
+  
   // Filtered users based on search and role filter
-  const filteredUsers = mockUsers.filter(user => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -96,13 +124,26 @@ export default function AdminUsersPage() {
     setIsEditingUser(false);
   };
   
-  const handleEditUser = (user: UserType) => {
-    setSelectedUser(user);
+  const handleEditUser = (user: UserType | AdminUsersResponse['users'][0]) => {
+    // Convert API user to UserType format if needed
+    if (typeof user.id === 'string' && !('avatar' in user)) {
+      const apiUser = user as AdminUsersResponse['users'][0];
+      const convertedUser: UserType = {
+        id: parseInt(apiUser.id.slice(-8), 16), // Convert string ID to number
+        name: apiUser.name,
+        email: apiUser.email,
+        role: apiUser.role,
+        avatar: apiUser.name.split(' ').map(n => n[0]).join('')
+      };
+      setSelectedUser(convertedUser);
+    } else {
+      setSelectedUser(user as UserType);
+    }
     setIsEditingUser(true);
     setIsAddingUser(false);
   };
   
-  const handleDeleteUser = (userId: number) => {
+  const handleDeleteUser = (userId: number | string) => {
     // In a real app, you would call an API to delete the user
     // For now, just log it
     console.log(`Delete user with ID: ${userId}`);
@@ -178,6 +219,13 @@ export default function AdminUsersPage() {
           </button>
         </div>
       </div>
+      
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-900 bg-opacity-50 rounded-xl p-4 mb-6 text-red-200">
+          <p>Error: {error}</p>
+        </div>
+      )}
       
       {(isAddingUser || isEditingUser) ? (
         // Add/Edit User Form
@@ -302,6 +350,12 @@ export default function AdminUsersPage() {
           
           {/* Users Table */}
           <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+                <p className="mt-4 text-gray-400">Loading users...</p>
+              </div>
+            ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
@@ -314,15 +368,24 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {filteredUsers.map((user) => (
+                  {filteredUsers.map((user) => {
+                    const isMockUser = 'avatar' in user;
+                    const userAvatar = isMockUser ? 
+                      (user as UserType).avatar : 
+                      user.name.split(' ').map((n: string) => n[0]).join('');
+                    
+                    return (
                     <tr key={user.id} className="hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center mr-3">
-                            <span className="font-bold">{user.avatar}</span>
+                            <span className="font-bold">{userAvatar}</span>
                           </div>
                           <div>
                             <p className="font-medium">{user.name}</p>
+                            {!isMockUser && (
+                              <p className="text-xs text-gray-400">{(user as AdminUsersResponse['users'][0]).ordersCount} orders</p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -356,12 +419,14 @@ export default function AdminUsersPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+            )}
             
-            {filteredUsers.length === 0 && (
+            {filteredUsers.length === 0 && !isLoading && (
               <div className="text-center py-12">
                 <User className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-medium mb-2">No users found</h3>
@@ -371,6 +436,39 @@ export default function AdminUsersPage() {
                   className="px-5 py-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg font-medium transition inline-block"
                 >
                   Add New User
+                </button>
+              </div>
+            )}
+            
+            {/* Pagination */}
+            {usersData?.pagination && usersData.pagination.pages > 1 && (
+              <div className="flex justify-center mt-6 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    currentPage === 1 
+                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  }`}
+                >
+                  Previous
+                </button>
+                
+                <span className="px-4 py-2 text-gray-300">
+                  Page {currentPage} of {totalPages}
+                </span>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    currentPage === totalPages 
+                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  }`}
+                >
+                  Next
                 </button>
               </div>
             )}

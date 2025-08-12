@@ -3,13 +3,16 @@ import { OrderFormData } from '@/lib/types';
 
 // Determine API base URL based on environment
 const getApiBaseUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.waosongs.com/api';
+  
   // In development, use the proxy path (no domain needed)
   if (process.env.NODE_ENV === 'development') {
     return '';
   }
   
   // In production, use the full API URL
-  return process.env.NEXT_PUBLIC_API_URL || 'https://api.waosongs.com';
+  // Ensure we have the /api prefix
+  return apiUrl.includes('/api') ? apiUrl : `${apiUrl}/api`;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -193,6 +196,29 @@ export async function getAdminOrders(page: number = 1, limit: number = 10) {
   });
   
   const response = await fetch(`${API_BASE_URL}/admin/orders?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Accept': 'application/json'
+    }
+  });
+  
+  return handleApiError(response);
+}
+
+// Get admin users with pagination
+export async function getAdminUsers(page: number = 1, limit: number = 10) {
+  const token = getAuthToken();
+  
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  const response = await fetch(`${API_BASE_URL}/admin/users?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Accept': 'application/json'
