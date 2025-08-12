@@ -1,7 +1,7 @@
 // src/app/admin/page.tsx
 'use client';
 
-import { useState /*, useEffect */ } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Users, 
   Music, 
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 //import Sidebar from '@/components/layout/sidebar'; // Remove this import as we're using AdminSidebar
 import { Song, User } from '@/lib/types';
+import { getAdminDashboard } from '@/lib/api';
+import { AdminDashboardResponse } from '@/lib/types';
 
 // Mock data for users
 const mockUsers: User[] = [
@@ -162,6 +164,27 @@ export default function AdminDashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dashboardData, setDashboardData] = useState<AdminDashboardResponse | null>(null);
+  
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAdminDashboard();
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
   
   // Filtered users based on search and role filter
   const filteredUsers = mockUsers.filter(user => {
@@ -267,6 +290,13 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-900 bg-opacity-50 rounded-xl p-4 mb-8 text-red-200">
+              <p>Error: {error}</p>
+            </div>
+          )}
+          
           {/* Stats Cards */}
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -277,7 +307,7 @@ export default function AdminDashboardPage() {
                     <Users className="w-5 h-5 text-blue-400" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold">{getUsersCount()}</p>
+                <p className="text-3xl font-bold">{isLoading ? '-' : dashboardData?.statistics?.users || getUsersCount()}</p>
                 <p className="text-green-400 text-sm mt-2">+4% from last month</p>
               </div>
               
@@ -288,7 +318,7 @@ export default function AdminDashboardPage() {
                     <Music className="w-5 h-5 text-pink-400" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold">{getArtistsCount()}</p>
+                <p className="text-3xl font-bold">{isLoading ? '-' : dashboardData?.statistics?.artists || getArtistsCount()}</p>
                 <p className="text-green-400 text-sm mt-2">+2% from last month</p>
               </div>
               
@@ -299,7 +329,7 @@ export default function AdminDashboardPage() {
                     <Music className="w-5 h-5 text-green-400" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold">{getCompletedSongsCount()}</p>
+                <p className="text-3xl font-bold">{isLoading ? '-' : dashboardData?.statistics?.completedOrders || getCompletedSongsCount()}</p>
                 <p className="text-green-400 text-sm mt-2">+12% from last month</p>
               </div>
               
@@ -310,8 +340,75 @@ export default function AdminDashboardPage() {
                     <Music className="w-5 h-5 text-amber-400" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold">{getPendingSongsCount()}</p>
+                <p className="text-3xl font-bold">{isLoading ? '-' : dashboardData?.statistics?.pendingOrders || getPendingSongsCount()}</p>
                 <p className="text-yellow-400 text-sm mt-2">In progress</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Additional Stats Row */}
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium">Total Orders</h3>
+                  <div className="w-10 h-10 rounded-full bg-purple-500 bg-opacity-20 flex items-center justify-center">
+                    <Music className="w-5 h-5 text-purple-400" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold">{isLoading ? '-' : dashboardData?.statistics?.orders || 0}</p>
+                <p className="text-green-400 text-sm mt-2">All time orders</p>
+              </div>
+              
+              <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium">Total Revenue</h3>
+                  <div className="w-10 h-10 rounded-full bg-green-500 bg-opacity-20 flex items-center justify-center">
+                    <span className="text-green-400">$</span>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold">${isLoading ? '-' : dashboardData?.statistics?.revenue?.toFixed(2) || '0.00'}</p>
+                <p className="text-green-400 text-sm mt-2">Total earnings</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Recent Orders */}
+          {activeTab === 'overview' && dashboardData?.recentOrders && dashboardData.recentOrders.length > 0 && (
+            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm mb-8">
+              <h3 className="text-xl font-medium mb-4">Recent Orders</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Order ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Customer</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {dashboardData.recentOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-gray-700">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">#{order.id.slice(-8)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">{order.customer}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm capitalize">{order.category}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            order.status === 'completed' ? 'bg-green-500' : 
+                            order.status === 'pending' ? 'bg-amber-500' : 'bg-blue-500'
+                          } bg-opacity-20`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">${order.amount.toFixed(2)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">{order.date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

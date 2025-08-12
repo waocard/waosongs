@@ -84,3 +84,62 @@ export interface OrderWithSong extends Order {
     progress?: number;
   };
 }
+
+// API Response Types
+export interface AdminDashboardResponse {
+  statistics: {
+    users: number;
+    artists: number;
+    orders: number;
+    pendingOrders: number;
+    completedOrders: number;
+    songs: number;
+    revenue: number;
+  };
+  recentOrders: Array<{
+    id: string;
+    category: string;
+    customer: string;
+    status: string;
+    amount: number;
+    date: string;
+  }>;
+  activeSongs: Array<{
+    id: string;
+    title: string;
+    status: string;
+    progress: number;
+    artist: string;
+    deadline: string;
+  }>;
+}
+
+export interface AdminOrdersResponse {
+  orders: Array<{
+    id: string;
+    category: string;
+    occasion: string;
+    deadline: string;
+    totalPrice: number;
+    status: string;
+    paymentStatus: string;
+    createdAt: string;
+    customer: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    song: {
+      id: string;
+      title: string;
+      status: string;
+      progress: number;
+    };
+  }>;
+  pagination: {
+    total: number;
+    pages: number;
+    page: number;
+    limit: number;
+  };
+}

@@ -1,7 +1,7 @@
 // src/app/admin/orders/page.tsx
 'use client';
 
-import { useState /*, useEffect */ } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Search, 
@@ -21,6 +21,8 @@ import {
   FileText,
   RefreshCw
 } from 'lucide-react';
+import { getAdminOrders } from '@/lib/api';
+import { AdminOrdersResponse } from '@/lib/types';
 //import Sidebar from '@/components/admin/admin-sidebar'; // Using AdminSidebar from layout
 
 // Define types for our component
@@ -193,25 +195,88 @@ export default function OrderManagementPage() {
     { date: 'April 1, 2025 10:30 AM', action: 'Payment confirmed', user: 'System' },
     { date: 'April 2, 2025 11:45 AM', action: 'Order status updated to Pending', user: 'Admin' }
   ]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [ordersData, setOrdersData] = useState<AdminOrdersResponse | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const router = useRouter();
   
+  const fetchOrders = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAdminOrders(currentPage, 10);
+      setOrdersData(data);
+      setTotalPages(data.pagination.pages);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch orders');
+      console.error('Error fetching orders:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage]);
+  
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+  
+  
+  // Use API data if available, otherwise use mock data
+  const orders = ordersData?.orders || mockOrders;
+  
   // Filtered orders based on search and filters
-  const filteredOrders = mockOrders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
+    // Check if it's a mock order (has title) or API order (has song.title)
+    const isMockOrder = 'title' in order;
+    const orderTitle = isMockOrder ? (order as Order).title : order.song?.title || '';
+    const orderArtist = isMockOrder ? (order as Order).artist : undefined;
+    
     const matchesSearch = 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      order.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.artist && order.artist.toLowerCase().includes(searchTerm.toLowerCase()));
+      (orderTitle && orderTitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.customer?.name && order.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (orderArtist && orderArtist.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const orderStatus = isMockOrder ? (order as Order).status : order.song?.status || order.status;
+    const matchesStatus = statusFilter === 'all' || orderStatus === statusFilter;
     const matchesCategory = categoryFilter === 'all' || order.category === categoryFilter;
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
   
-  const handleViewOrder = (order: Order) => {
-    setSelectedOrder(order);
+  const handleViewOrder = (order: Order | AdminOrdersResponse['orders'][0]) => {
+    // Convert API order to Order format if needed
+    if ('song' in order) {
+      const apiOrder = order as AdminOrdersResponse['orders'][0];
+      const convertedOrder: Order = {
+        id: apiOrder.id,
+        title: apiOrder.song?.title || `${apiOrder.category} for ${apiOrder.occasion}`,
+        customer: {
+          name: apiOrder.customer.name,
+          email: apiOrder.customer.email,
+          avatar: apiOrder.customer.name.split(' ').map(n => n[0]).join('')
+        },
+        category: apiOrder.category,
+        artist: 'Unassigned',
+        status: (apiOrder.song?.status || apiOrder.status) as Order['status'],
+        price: apiOrder.totalPrice,
+        date: apiOrder.createdAt,
+        deadline: apiOrder.deadline,
+        requirements: '',
+        specifications: {
+          length: '3-4 minutes',
+          tempo: 'Moderate',
+          mood: 'Custom',
+          vocals: 'TBD',
+          instruments: []
+        }
+      };
+      setSelectedOrder(convertedOrder);
+    } else {
+      setSelectedOrder(order as Order);
+    }
     setIsViewingOrder(true);
     
     // In a real application, you would fetch order history here
@@ -350,6 +415,13 @@ export default function OrderManagementPage() {
                 </div>
               </div>
               
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-900 bg-opacity-50 rounded-xl p-4 mb-6 text-red-200">
+                  <p>Error: {error}</p>
+                </div>
+              )}
+              
               {/* Filters */}
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="relative">
@@ -386,6 +458,12 @@ export default function OrderManagementPage() {
               
               {/* Orders Table */}
               <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+                    <p className="mt-4 text-gray-400">Loading orders...</p>
+                  </div>
+                ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead>
@@ -401,29 +479,39 @@ export default function OrderManagementPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
-                      {filteredOrders.map((order) => (
+                      {filteredOrders.map((order) => {
+                        const isMockOrder = 'title' in order;
+                        const orderTitle = isMockOrder ? (order as Order).title : order.song?.title || `${order.category} for ${order.occasion}`;
+                        const orderStatus = isMockOrder ? (order as Order).status : order.song?.status || order.status;
+                        const orderPrice = isMockOrder ? (order as Order).price : order.totalPrice || 0;
+                        const customerAvatar = isMockOrder ? 
+                          (order as Order).customer.avatar : 
+                          order.customer?.name?.split(' ').map((n: string) => n[0]).join('');
+                        const orderArtist = isMockOrder ? (order as Order).artist : undefined;
+                        
+                        return (
                         <tr key={order.id} className="hover:bg-gray-700 cursor-pointer" onClick={() => handleViewOrder(order)}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">{order.id}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">{order.title}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">#{order.id.slice(-8)}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">{orderTitle}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm">
                             <div className="flex items-center">
                               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center mr-2">
-                                <span className="text-xs font-bold">{order.customer.avatar}</span>
+                                <span className="text-xs font-bold">{customerAvatar}</span>
                               </div>
                               <div>
-                                <p className="font-medium">{order.customer.name}</p>
-                                <p className="text-xs text-gray-400">{order.customer.email}</p>
+                                <p className="font-medium">{order.customer?.name}</p>
+                                <p className="text-xs text-gray-400">{order.customer?.email}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">{order.artist || 'Unassigned'}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">{orderArtist || 'Unassigned'}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(order.status)} bg-opacity-20 flex items-center w-fit`}>
-                              <span className={`w-2 h-2 rounded-full ${getStatusColor(order.status)} mr-2`}></span>
-                              {getStatusLabel(order.status)}
+                            <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(orderStatus)} bg-opacity-20 flex items-center w-fit`}>
+                              <span className={`w-2 h-2 rounded-full ${getStatusColor(orderStatus)} mr-2`}></span>
+                              {getStatusLabel(orderStatus)}
                             </span>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{formatPrice(order.price)}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{formatPrice(orderPrice)}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm">{order.deadline}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-right">
                             <button 
@@ -437,16 +525,51 @@ export default function OrderManagementPage() {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
+                )}
                 
-                {filteredOrders.length === 0 && (
+                {filteredOrders.length === 0 && !isLoading && (
                   <div className="text-center py-12">
                     <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-medium mb-2">No orders found</h3>
                     <p className="text-gray-400 mb-6">Try adjusting your search or filters</p>
+                  </div>
+                )}
+                
+                {/* Pagination */}
+                {ordersData?.pagination && ordersData.pagination.pages > 1 && (
+                  <div className="flex justify-center mt-6 space-x-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        currentPage === 1 
+                          ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                          : 'bg-gray-700 hover:bg-gray-600 text-white'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    
+                    <span className="px-4 py-2 text-gray-300">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        currentPage === totalPages 
+                          ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                          : 'bg-gray-700 hover:bg-gray-600 text-white'
+                      }`}
+                    >
+                      Next
+                    </button>
                   </div>
                 )}
               </div>
@@ -459,7 +582,7 @@ export default function OrderManagementPage() {
                   <div>
                     <h1 className="text-2xl md:text-3xl font-bold mb-2">Order Details</h1>
                     <p className="text-gray-300">
-                      {selectedOrder.id} - {selectedOrder.title}
+                      #{selectedOrder.id.slice ? selectedOrder.id.slice(-8) : selectedOrder.id} - {selectedOrder.title}
                     </p>
                   </div>
                   
